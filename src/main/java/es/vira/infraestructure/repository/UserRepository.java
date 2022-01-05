@@ -10,13 +10,13 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    List<UserDto> findAllProjectionsBy(Pageable pageable);
+    List<User> findAllProjectionsBy(Pageable pageable);
 
-    Optional<UserDto> findProjectionById(Long id);
+    Optional<User> findProjectionById(Long id);
 
     Optional<User> findByUsername(String username);
 
-    Optional<UserDto> findProjectionByUsername(String username);
+    Optional<User> findProjectionByUsername(String username);
 
     boolean existsByUsername(String username);
 }

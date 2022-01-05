@@ -1,15 +1,23 @@
 package es.vira.domain.validator.impl;
 
+import es.vira.application.dto.UserDto;
+import es.vira.application.exception.UserNotFoundException;
+import es.vira.domain.enums.UserRole;
 import es.vira.domain.model.User;
+import es.vira.domain.service.UserService;
 import es.vira.domain.validator.UserValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.lang.String.format;
 
 @Component
 public class UserValidatorImpl implements UserValidator {
@@ -18,6 +26,7 @@ public class UserValidatorImpl implements UserValidator {
     public final int minPasswordLength;
     public final int maxPasswordLength;
     private final Validator validator;
+//    private final UserService userService;
 
     @Autowired
     public UserValidatorImpl(@Value("${application.options.minPasswordLength}") int minPasswordLength,
@@ -26,6 +35,60 @@ public class UserValidatorImpl implements UserValidator {
         this.minPasswordLength = minPasswordLength;
         this.maxPasswordLength = maxPasswordLength;
         this.validator = validator;
+//        this.userService = userService;
+    }
+
+    @Override
+    public void assertAccessToModify(Long id, Authentication authentication, UserService userService) throws UserNotFoundException {
+        UserDto user = userService.get((String) authentication.getPrincipal());
+        if (user.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        Long currentUserId = user.getId();
+        if (!currentUserId.equals(id)) {
+            throw new AccessDeniedException(
+                    format("User with ID = %s and username = %s doesn't have permission to modify other users information.",
+                            currentUserId, user.getUsername())
+            );
+        }
+    }
+
+    @Override
+    public void assertAccessToGetUser(Long id, String requestedUsername, Authentication authentication, UserService userService) throws UserNotFoundException {
+        UserDto user = userService.get((String) authentication.getPrincipal());
+        if (user.getRole() == UserRole.ADMIN) {
+            return;
+        }
+        Long currentUserId = user.getId();
+        String username = user.getUsername();
+        if ((id != null && !currentUserId.equals(id)) ||
+                (requestedUsername != null && !username.equals(requestedUsername))) {
+            throw new AccessDeniedException(
+                    format("User with ID = %s and username = %s doesn't have permission to view other users information.",
+                            currentUserId, username)
+            );
+        }
+    }
+
+    @Override
+    public void assertId(long id, String msg) {
+        if (id < 1) {
+            throw new IllegalArgumentException(format(msg, id));
+        }
+    }
+
+    @Override
+    public void assertUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Can't get a user by null or blank username. Username = " + username);
+        }
+    }
+
+    @Override
+    public void assertUserDto(UserDto user, String msg) {
+        if (user == null) {
+            throw new IllegalArgumentException(msg);
+        }
     }
 
     @Override

@@ -1,7 +1,7 @@
 package es.vira.application.dto;
 
 import es.vira.domain.enums.UserRole;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -17,7 +17,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString(exclude = "password")
-@ApiModel(value = "User Data Transfer Object")
+@Schema(name = "User Data Transfer Object")
 public class UserDto {
     private Long id;
     private String username;

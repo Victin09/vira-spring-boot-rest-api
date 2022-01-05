@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User create(UserDto userDto) throws UsernameAlreadyExistsException {
-        assertUserDto(userDto, "Can't create a user info when user is null");
+        validator.assertUserDto(userDto, "Can't create a user info when user is null");
         User user = userMapper.convertDtoToUser(userDto);
         validator.validate(user);
         validator.validatePassword(user.getPassword());
@@ -60,34 +61,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto get(long id) throws UserNotFoundException {
-        assertId(id, "Can't get a user by ID less than 1. ID = %d");
-        return repository.findProjectionById(id)
+        validator.assertId(id, "Can't get a user by ID less than 1. ID = %d");
+        User user = repository.findProjectionById(id)
                 .orElseThrow(() -> new UserNotFoundException(format(USER_NOT_FOUND_BY_ID_TEMPLATE, id)));
-    }
-
-    private void assertId(long id, String msg) {
-        if (id < 1) {
-            throw new IllegalArgumentException(format(msg, id));
-        }
+        return userMapper.convertUserToDto(user);
     }
 
     @Override
     public UserDto get(String username) throws UserNotFoundException {
-        assertUsername(username);
-        return repository.findProjectionByUsername(username)
+        validator.assertUsername(username);
+        User user = repository.findProjectionByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException(format("User with username = %s wasn't found", username)));
+        return userMapper.convertUserToDto(user);
     }
 
     @Override
     public Optional<User> getUser(String username) {
-        assertUsername(username);
+        validator.assertUsername(username);
         return repository.findByUsername(username);
-    }
-
-    private void assertUsername(String username) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Can't get a user by null or blank username. Username = " + username);
-        }
     }
 
     @Override
@@ -103,12 +94,12 @@ public class UserServiceImpl implements UserService {
         if (pageSize < 0 || pageSize > maxPageSize) {
             throw new IllegalArgumentException(format("Page size can't be less than zero or greater than %d. Page size = %d", maxPageSize, pageSize));
         }
-        return repository.findAllProjectionsBy(PageRequest.of(pageNumber, pageSize));
+        return repository.findAllProjectionsBy(PageRequest.of(pageNumber, pageSize)).stream().map(userMapper::convertUserToDto).collect(Collectors.toList());
     }
 
     @Override
     public void updateInfo(UserDto user) throws UserNotFoundException {
-        assertUserDto(user, "Can't update a user info when user is null");
+        validator.assertUserDto(user, "Can't update a user info when user is null");
         Long id = user.getId();
         User persistedUser = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(format(USER_NOT_FOUND_BY_ID_TEMPLATE, id)));
@@ -123,12 +114,6 @@ public class UserServiceImpl implements UserService {
         repository.save(persistedUser);
     }
 
-    private void assertUserDto(UserDto user, String msg) {
-        if (user == null) {
-            throw new IllegalArgumentException(msg);
-        }
-    }
-
     @Override
     public void updatePassword(Long id, String newPassword) throws UserNotFoundException {
         validator.validatePassword(newPassword);
@@ -140,7 +125,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(long id) throws UserNotFoundException {
-        assertId(id, "Can't delete a user by ID less than 1. ID = %d");
+        validator.assertId(id, "Can't delete a user by ID less than 1. ID = %d");
         if (!repository.existsById(id)) {
             throw new UserNotFoundException(format(USER_NOT_FOUND_BY_ID_TEMPLATE, id));
         }

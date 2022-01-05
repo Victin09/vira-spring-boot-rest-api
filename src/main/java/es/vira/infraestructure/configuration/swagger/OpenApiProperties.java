@@ -11,11 +11,13 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 @Validated
 @ConfigurationProperties("application.swagger")
-public class SwaggerProperties {
+public class OpenApiProperties {
     private String title;
     private String description;
     private String contactEmail;
     private String contactName;
     private String contactUrl;
     private String license;
+    private String externalDocDescription;
+    private String externalDocUrl;
 }
