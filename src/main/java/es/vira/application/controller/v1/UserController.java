@@ -5,7 +5,7 @@ import es.vira.domain.service.UserService;
 import es.vira.application.exception.UserNotFoundException;
 import es.vira.application.exception.UsernameAlreadyExistsException;
 import es.vira.domain.validator.UserValidator;
-import es.vira.infraestructure.security.SecurityConstants;
+import es.vira.infraestructure.constants.SecurityConstants;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,24 +29,24 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Tag(name = "User Management")
 @RestController
 @RequestMapping("/api/v1/user")
-public class UserManageController {
+public class UserController {
 
     private final UserService userService;
     private final UserValidator validator;
 
     @Autowired
-    public UserManageController(UserService userService, UserValidator validator) {
+    public UserController(UserService userService, UserValidator validator) {
         this.userService = userService;
         this.validator = validator;
     }
 
     @Operation(summary = "Creates a new user.",
             description = "Creates a new user by provided information. Returns the ID of created user. ")
-    @RolesAllowed(SecurityConstants.ADMIN_ROLE)
+    @RolesAllowed(SecurityConstants.USER_ROLE)
     @PostMapping(value = "/create", consumes = APPLICATION_JSON_VALUE)
-    public long createUser(@Parameter(description = "The information about a new user.", required = true)
+    public UserDto createUser(@Parameter(description = "The information about a new user.", required = true)
                            @RequestBody UserDto user) throws UsernameAlreadyExistsException {
-        return userService.create(user).getId();
+        return userService.create(user);
     }
 
     @Operation(summary = "Returns list of users.",
@@ -85,10 +85,12 @@ public class UserManageController {
     @Operation(summary = "Updates user information",
             description = "Updates user information by user ID. Fields that can be updated: firstName, lastName.")
     @PutMapping(value = "/updateInfo", consumes = APPLICATION_JSON_VALUE)
-    public void updateUserInfo(@Parameter(description = "The user information to update.", required = true)
-                               @RequestBody UserDto user,
-                               Authentication authentication) throws UserNotFoundException {
-        validator.assertAccessToModify(user.getId(), authentication, userService);
+    public void updateUserInfo(@Parameter(description = "The ID of the user to update the password.", required = true)
+                                @RequestParam Long id,
+                                @Parameter(description = "The user information to update.", required = true)
+                                @RequestBody UserDto user,
+                                Authentication authentication) throws UserNotFoundException {
+        validator.assertAccessToModify(id, authentication, userService);
         userService.updateInfo(user);
     }
 

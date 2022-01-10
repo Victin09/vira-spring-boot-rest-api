@@ -23,7 +23,7 @@ public class UserMapperImpl implements UserMapper {
     @Override
     public User convertDtoToUser(UserDto userDto) {
         User user = modelMapper.map(userDto, User.class);
-        user.setEncryptedPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         return user;
     }
 

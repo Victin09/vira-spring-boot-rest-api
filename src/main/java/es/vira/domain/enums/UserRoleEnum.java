@@ -7,31 +7,31 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public enum UserRole {
-    ADMIN(Set.of(UserPermission.READ_OWN_DATA, UserPermission.WRITE_OWN_DATA, UserPermission.READ_USERS_DATA, UserPermission.WRITE_USERS_DATA)),
-    USER(Set.of(UserPermission.READ_OWN_DATA, UserPermission.WRITE_OWN_DATA));
+public enum UserRoleEnum {
+    ADMIN(Set.of(RolePermissionEnum.READ_OWN_DATA, RolePermissionEnum.WRITE_OWN_DATA, RolePermissionEnum.READ_USERS_DATA, RolePermissionEnum.WRITE_USERS_DATA)),
+    USER(Set.of(RolePermissionEnum.READ_OWN_DATA, RolePermissionEnum.WRITE_OWN_DATA));
 
-    private final Set<UserPermission> permissions;
+    private final Set<RolePermissionEnum> permissions;
 
-    UserRole(Set<UserPermission> permissions) {
+    UserRoleEnum(Set<RolePermissionEnum> permissions) {
         this.permissions = permissions;
     }
 
-    public Set<UserPermission> getPermissions() {
+    public Set<RolePermissionEnum> getPermissions() {
         return permissions;
     }
 
     public Set<SimpleGrantedAuthority> getGrantedAuthorities() {
         Set<SimpleGrantedAuthority> permissions = getPermissions().stream()
-                .map(UserPermission::getPermission)
+                .map(RolePermissionEnum::getPermission)
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toSet());
-        permissions.add(new SimpleGrantedAuthority("ROLE_" + this.name()));
+        permissions.add(new SimpleGrantedAuthority("ROLE_" + this.name().toUpperCase()));
         return permissions;
     }
 
     @JsonCreator
-    public static UserRole forValue(String value) {
+    public static UserRoleEnum forValue(String value) {
         return valueOf(value.toUpperCase());
     }
 

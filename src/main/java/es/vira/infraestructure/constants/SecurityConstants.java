@@ -1,4 +1,4 @@
-package es.vira.infraestructure.security;
+package es.vira.infraestructure.constants;
 
 public final class SecurityConstants {
 

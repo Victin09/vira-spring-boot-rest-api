@@ -1,12 +1,13 @@
 package es.vira.infraestructure.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.vira.infraestructure.security.SecurityConstants;
+import es.vira.infraestructure.constants.SecurityConstants;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import javax.crypto.SecretKey;
@@ -17,6 +18,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Log4j2
 public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -61,9 +63,12 @@ public class JwtUsernameAndPasswordAuthenticationFilter extends UsernamePassword
                                             HttpServletResponse response,
                                             FilterChain chain,
                                             Authentication authResult) {
+        String authorities = authResult.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
         String token = Jwts.builder()
                 .setSubject(authResult.getName())
-                .claim(SecurityConstants.AUTHORITIES, authResult.getAuthorities())
+                .claim(SecurityConstants.AUTHORITIES, authorities)
                 .setIssuedAt(new Date())
                 .setExpiration(Date.from(Instant.now().plus(jwtProperties.getTokenExpirationHours(), ChronoUnit.HOURS)))
                 .signWith(secretKey)

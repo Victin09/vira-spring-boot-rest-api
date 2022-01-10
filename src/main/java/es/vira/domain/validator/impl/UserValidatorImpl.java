@@ -2,7 +2,8 @@ package es.vira.domain.validator.impl;
 
 import es.vira.application.dto.UserDto;
 import es.vira.application.exception.UserNotFoundException;
-import es.vira.domain.enums.UserRole;
+import es.vira.domain.enums.UserRoleEnum;
+import es.vira.domain.mapper.UserMapper;
 import es.vira.domain.model.User;
 import es.vira.domain.service.UserService;
 import es.vira.domain.validator.UserValidator;
@@ -26,22 +27,22 @@ public class UserValidatorImpl implements UserValidator {
     public final int minPasswordLength;
     public final int maxPasswordLength;
     private final Validator validator;
-//    private final UserService userService;
+    private final UserMapper userMapper;
 
     @Autowired
     public UserValidatorImpl(@Value("${application.options.minPasswordLength}") int minPasswordLength,
                              @Value("${application.options.maxPasswordLength}") int maxPasswordLength,
-                             Validator validator) {
+                             Validator validator, UserMapper userMapper) {
         this.minPasswordLength = minPasswordLength;
         this.maxPasswordLength = maxPasswordLength;
         this.validator = validator;
-//        this.userService = userService;
+        this.userMapper = userMapper;
     }
 
     @Override
     public void assertAccessToModify(Long id, Authentication authentication, UserService userService) throws UserNotFoundException {
-        UserDto user = userService.get((String) authentication.getPrincipal());
-        if (user.getRole() == UserRole.ADMIN) {
+        User user = userMapper.convertDtoToUser(userService.get((String) authentication.getPrincipal()));
+        if (user.getRole() == UserRoleEnum.ADMIN) {
             return;
         }
         Long currentUserId = user.getId();
@@ -55,8 +56,8 @@ public class UserValidatorImpl implements UserValidator {
 
     @Override
     public void assertAccessToGetUser(Long id, String requestedUsername, Authentication authentication, UserService userService) throws UserNotFoundException {
-        UserDto user = userService.get((String) authentication.getPrincipal());
-        if (user.getRole() == UserRole.ADMIN) {
+        User user = userMapper.convertDtoToUser(userService.get((String) authentication.getPrincipal()));
+        if (user.getRole() == UserRoleEnum.ADMIN) {
             return;
         }
         Long currentUserId = user.getId();

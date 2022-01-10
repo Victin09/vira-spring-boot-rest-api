@@ -3,6 +3,7 @@ package es.vira.domain.service.impl;
 import es.vira.application.dto.UserDto;
 import es.vira.application.exception.UserNotFoundException;
 import es.vira.application.exception.UsernameAlreadyExistsException;
+import es.vira.domain.enums.UserRoleEnum;
 import es.vira.domain.mapper.UserMapper;
 import es.vira.domain.model.User;
 import es.vira.domain.service.UserService;
@@ -24,6 +25,7 @@ import static java.lang.String.format;
 public class UserServiceImpl implements UserService {
 
     public final String USER_NOT_FOUND_BY_ID_TEMPLATE = "User with ID = %d wasn't found";
+    public final String USER_NOT_FOUND_BY_USERNAME_TEMPLATE = "User with ID = %s wasn't found";
     private final UserRepository repository;
     private final UserMapper userMapper;
     private final UserValidator validator;
@@ -47,16 +49,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User create(UserDto userDto) throws UsernameAlreadyExistsException {
+    public UserDto create(UserDto userDto) throws UsernameAlreadyExistsException {
         validator.assertUserDto(userDto, "Can't create a user info when user is null");
         User user = userMapper.convertDtoToUser(userDto);
+        user.setRole(UserRoleEnum.USER);
         validator.validate(user);
-        validator.validatePassword(user.getPassword());
+        validator.validatePassword(userDto.getPassword());
         String username = user.getUsername();
         if (repository.existsByUsername(username)) {
             throw new UsernameAlreadyExistsException(format("Username %s already exists", username));
         }
-        return repository.save(user);
+        return userMapper.convertUserToDto(repository.save(user));
     }
 
     @Override
@@ -71,7 +74,7 @@ public class UserServiceImpl implements UserService {
     public UserDto get(String username) throws UserNotFoundException {
         validator.assertUsername(username);
         User user = repository.findProjectionByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException(format("User with username = %s wasn't found", username)));
+                .orElseThrow(() -> new UserNotFoundException(format(USER_NOT_FOUND_BY_USERNAME_TEMPLATE, username)));
         return userMapper.convertUserToDto(user);
     }
 
@@ -100,7 +103,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateInfo(UserDto user) throws UserNotFoundException {
         validator.assertUserDto(user, "Can't update a user info when user is null");
-        Long id = user.getId();
+        Long id = userMapper.convertDtoToUser(user).getId();
         User persistedUser = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(format(USER_NOT_FOUND_BY_ID_TEMPLATE, id)));
 
@@ -119,7 +122,7 @@ public class UserServiceImpl implements UserService {
         validator.validatePassword(newPassword);
         User persistedUser = repository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(format(USER_NOT_FOUND_BY_ID_TEMPLATE, id)));
-        persistedUser.setEncryptedPassword(passwordEncoder.encode(newPassword));
+        persistedUser.setPassword(passwordEncoder.encode(newPassword));
         repository.save(persistedUser);
     }
 

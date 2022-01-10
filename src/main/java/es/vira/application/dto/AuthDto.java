@@ -10,7 +10,7 @@ import lombok.*;
 @Setter
 @EqualsAndHashCode
 @ToString(exclude = "password")
-@Schema(name = "User Data Transfer Object")
+@Schema(name = "Auth Data Transfer Object")
 public class AuthDto {
     private String username;
     private String password;

@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    User create(UserDto user) throws UsernameAlreadyExistsException;
+    UserDto create(UserDto user) throws UsernameAlreadyExistsException;
 
     UserDto get(long id) throws UserNotFoundException;
 

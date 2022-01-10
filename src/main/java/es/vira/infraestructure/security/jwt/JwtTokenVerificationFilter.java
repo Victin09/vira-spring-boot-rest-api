@@ -1,10 +1,11 @@
 package es.vira.infraestructure.security.jwt;
 
-import es.vira.infraestructure.security.SecurityConstants;
+import es.vira.infraestructure.constants.SecurityConstants;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,9 +19,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -36,12 +35,12 @@ public class JwtTokenVerificationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    @Nullable HttpServletResponse response,
+                                    @Nullable FilterChain filterChain) throws ServletException, IOException {
         String authorizationHeader = request.getHeader(jwtProperties.getAuthorizationHeaderName());
         String tokenPrefix = jwtProperties.getTokenPrefix();
         if (authorizationHeader == null || authorizationHeader.isBlank() || !authorizationHeader.startsWith(tokenPrefix)) {
-            filterChain.doFilter(request, response);
+            Objects.requireNonNull(filterChain).doFilter(request, response);
             return;
         }
         String token = authorizationHeader.replace(tokenPrefix, "");
@@ -56,10 +55,10 @@ public class JwtTokenVerificationFilter extends OncePerRequestFilter {
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     body.getSubject(),
                     null,
-                    getAuthorities((List<Map<String, String>>) body.get(SecurityConstants.AUTHORITIES)));
+                    getAuthorities(body.get(SecurityConstants.AUTHORITIES)));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            filterChain.doFilter(request, response);
+            Objects.requireNonNull(filterChain).doFilter(request, response);
         } catch (JwtException ex) {
             String errorMessage = String.format("Token %s cannot be trust", token);
             LOGGER.error(errorMessage, ex);
@@ -67,10 +66,9 @@ public class JwtTokenVerificationFilter extends OncePerRequestFilter {
         }
     }
 
-    private Set<SimpleGrantedAuthority> getAuthorities(List<Map<String, String>> authorities) {
-        return authorities.stream()
-                .map(m -> m.get(SecurityConstants.AUTHORITY))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toSet());
+    private List<SimpleGrantedAuthority> getAuthorities(Object authorities) {
+        return Arrays.stream(authorities.toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
     }
 }

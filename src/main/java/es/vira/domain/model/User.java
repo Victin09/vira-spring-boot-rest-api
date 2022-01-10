@@ -1,11 +1,10 @@
 package es.vira.domain.model;
 
-import es.vira.domain.enums.UserRole;
+import es.vira.domain.enums.UserRoleEnum;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,10 +12,6 @@ import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Transient;
 import javax.persistence.Version;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -28,33 +23,36 @@ import javax.validation.constraints.Size;
 @Entity(name = "vira_user")
 @Builder
 @Getter @Setter
-@ToString(exclude = {"password", "encryptedPassword"})
-@EqualsAndHashCode()
+@ToString(exclude = {"password"})
 @NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class User extends BaseModel {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
     @NotBlank
-    @Column(unique = true)
+    @Column(name = "username", unique = true)
     @Size(min = 3, max = 30)
     @Pattern(regexp = "[a-zA-Z0-9]+")
     private String username;
+
     @NotBlank
+    @Column(name = "password")
     @Size(min = 3, max = 68)
-    private String encryptedPassword;
-    @Transient
     private String password;
+
     @NotBlank
+    @Column(name = "first_name")
     @Size(min = 3, max = 30)
     private String firstName;
+
     @NotBlank
+    @Column(name = "last_name")
     @Size(min = 3, max = 30)
     private String lastName;
+
     @NotNull
-    private UserRole role;
+    @Column(name = "role")
+    private UserRoleEnum role;
+
     @Version
     private Integer version;
 }

@@ -1,6 +1,7 @@
 package es.vira.application.dto;
 
-import es.vira.domain.enums.UserRole;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import es.vira.domain.enums.UserRoleEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,10 +20,8 @@ import lombok.ToString;
 @ToString(exclude = "password")
 @Schema(name = "User Data Transfer Object")
 public class UserDto {
-    private Long id;
     private String username;
     private String password;
     private String firstName;
     private String lastName;
-    private UserRole role;
 }

@@ -1,6 +1,6 @@
 package es.vira.domain.enums;
 
-public enum UserPermission {
+public enum RolePermissionEnum {
 
     READ_OWN_DATA("user:read"),
     WRITE_OWN_DATA("user:write"),
@@ -9,7 +9,7 @@ public enum UserPermission {
 
     private final String permission;
 
-    UserPermission(String permission) {
+    RolePermissionEnum(String permission) {
         this.permission = permission;
     }
 
