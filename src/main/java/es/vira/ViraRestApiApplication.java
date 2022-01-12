@@ -4,10 +4,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ViraRestApi {
+public class ViraRestApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(ViraRestApi.class, args);
+        SpringApplication.run(ViraRestApiApplication.class, args);
     }
 
 }
