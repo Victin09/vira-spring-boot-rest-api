@@ -1,0 +1,13 @@
+package es.vira;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ViraRestApi {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ViraRestApi.class, args);
+    }
+
+}
